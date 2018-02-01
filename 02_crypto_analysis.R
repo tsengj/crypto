@@ -61,7 +61,7 @@ plot.market <- function(market) {
   g$layout[grepl("guide", g$layout$name),c("t","b")] <- c(1,nrow(g))
   grid.newpage()
   grid.draw(g)
-  ggsave("Market-statistics.png", g, width=8, height=6, dpi=100, units="in")
+  ggsave("./plot/Market-statistics.png", g, width=8, height=6, dpi=100, units="in")
 }
 plot.market(market)
 
@@ -99,7 +99,7 @@ plot.currency <- function(data, slug) {
   g$layout[grepl("guide", g$layout$name),c("t","b")] <- c(1,nrow(g))
   grid.newpage()
   grid.draw(g)
-  ggsave("Bitcoin-statistics.png", g, width=8, height=6, dpi=100, units="in")
+  ggsave("./plot/Bitcoin-statistics.png", g, width=8, height=6, dpi=100, units="in")
 }
 plot.currency(df1, "bitcoin")
 
@@ -132,7 +132,7 @@ plot.currencies <- function(data, slugs) {
   g$layout[grepl("guide", g$layout$name),c("t","b")] <- c(1,nrow(g))
   grid.newpage()
   grid.draw(g)
-  ggsave("Coin-statistics.png", g, width=8, height=6, dpi=100, units="in")
+  ggsave("./plot/Coin-statistics.png", g, width=8, height=6, dpi=100, units="in")
 }
 plot.currencies(df1, c("bitcoin","ethereum", "ripple"))
 
@@ -155,7 +155,7 @@ plot.return.vs.return <- function(currency1, currency2, data) {
   p + geom_point() +
     labs(title=paste("Returns: ",currency1," vs ",currency2," (cor = ",round(cor_, digits=4),")",sep=""), x=paste(currency1, "Return"), y=paste(currency2, "Return")) +
     theme(legend.title=element_blank())
-  ggsave("Bitcoin-vs-ethereum-returns.png", width=8, height=4, dpi=100, units="in")
+  ggsave("./plot/Bitcoin-vs-ethereum-returns.png", width=8, height=4, dpi=100, units="in")
 }
 plot.return.vs.return("bitcoin", "ethereum", df1[df1$date>as.Date("2016-12-31"),])  
 
@@ -173,7 +173,7 @@ analysis.return.data <- function(currencies, data) {
 }
 
 # Plot the correlation matrix for top 25 currency returns
-png(filename="Corrplot.png", width=1920, height=2000, units="px")
+png(filename="./plot/Corrplot.png", width=1920, height=2000, units="px")
 corrplot(cor(analysis.return.data(top_25,df1[df1$date>as.Date("2017-09-30"),])[,-1],
              use = "pairwise.complete.obs"), method="ellipse"
          ,type = "lower"
@@ -193,7 +193,7 @@ plot.corr.timeline <- function(currency1, currency2, mindays, maxdays, data) {
   data$corr <- sapply(1:nrow(data), FUN=function(i) if(i<mindays) return(NA) else cor(data[max(1,i-maxdays):i,15],data[max(1,i-maxdays):i,29]))
   p <- ggplot(data, aes(date, corr))
   p + geom_line() + labs(x="Date", y="Correlation", title=paste("Correlation timeline: ", paste(c(currency1, currency2), collapse=", ")))
-  ggsave("Corr-timeline.png", width=8, height=4, dpi=100, units="in")
+  ggsave("./plot/Corr-timeline.png", width=8, height=4, dpi=100, units="in")
 }
 plot.corr.timeline("bitcoin", "ethereum", 30, 90, df1)
 
@@ -207,7 +207,7 @@ plot.return.vs.market <- function(currency, data, market) {
   p + geom_point() +
     labs(title=paste("Returns: ",currency," vs Market (cor = ",round(cor_, digits=4),")",sep=""), x=paste(currency, "return"), y="Market return") +
     theme(legend.title=element_blank())
-  ggsave("Ethereum-vs-market-return.png", width=8, height=4, dpi=100, units="in")
+  ggsave("./plot/Ethereum-vs-market-return.png", width=8, height=4, dpi=100, units="in")
 }
 plot.return.vs.market("ethereum", df1[df1$date>as.Date("2016-12-31"),], market)
 
@@ -230,7 +230,7 @@ plot.beta.vs.mcap.num <- function(num, currencies) {
     geom_text(aes(label=name),hjust=0, vjust=0) +
     labs(title="Beta vs Market capitalisation", x="Market capitalisation [USD] (log scale)", y="Beta") +
     theme(legend.title=element_blank())
-  ggsave("Beta-vs-mcap.png", width=8, height=5, dpi=100, units="in")
+  ggsave("./plot/Beta-vs-mcap.png", width=8, height=5, dpi=100, units="in")
 }
 plot.beta.vs.mcap.num(25, df1)
 
@@ -244,6 +244,6 @@ plot.beta.timeline <- function(currencies, mindays, maxdays, data, market) {
                                                             function(date) if(nrow(data[data$slug==currency & date-maxdays<data$date & data$date<=date,])<mindays) return(NA) else currency.beta(currency, data[data$slug==currency & date-maxdays<data$date & data$date<=date,], market))))
   p <- ggplot(result, aes(date, beta, color=factor(currency)))
   p + geom_line() + labs(x="Date", y="Beta", title=paste("Beta timeline: ", paste(currencies, collapse=", "))) + theme(legend.title=element_blank())
-  ggsave("Beta-timeline.png", width=8, height=4, dpi=100, units="in")
+  ggsave("./plot/Beta-timeline.png", width=8, height=4, dpi=100, units="in")
 }
 plot.beta.timeline(c("bitcoin","ethereum","ripple"), 30, 90, df1, market)

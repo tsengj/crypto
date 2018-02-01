@@ -11,7 +11,14 @@ top_25 <- df_list_coin[1:25,3]
 top_25_sym <- df_list_coin[1:25,1]
 
 # Retrieve crypto market history for all coins
-df_all_coins <- getCoins()
+#df_all_coins <- getCoins()
+
+# Load saved data
+#id =  'export/df_all_coins.rda'
+#load(file = id)
+
+#id =  'export/df_list_coin.rda'
+#load(file = id)
 
 #filter to only coins of interest
 df1 <- df_all_coins %>% filter(symbol %in% top_25_sym)#c('BTC','ETH','XRP'))
@@ -20,5 +27,9 @@ df1 <- df_all_coins %>% filter(symbol %in% top_25_sym)#c('BTC','ETH','XRP'))
 #df_select <- getCoins(coin = 'ETH')
 
 ## save this model
-id =  'export/df_all_coins.rda'
-save(df_all_coins, file = id)
+#id =  'export/df_all_coins.rda'
+#save(df_all_coins, file = id)
+
+#df_list_coin
+#id =  'export/df_list_coin.rda'
+#save(df_list_coin, file = id)
