@@ -173,9 +173,18 @@ analysis.return.data <- function(currencies, data) {
 }
 
 # Plot the correlation matrix for top 25 currency returns
-png(filename="Corrplot.png", width=800, height=700, units="px")
-corrplot(cor(analysis.return.data(top_25,df1[df1$date>as.Date("2016-12-31"),])[,-1],
-             use = "pairwise.complete.obs"), method="ellipse")
+png(filename="Corrplot.png", width=1920, height=2000, units="px")
+corrplot(cor(analysis.return.data(top_25,df1[df1$date>as.Date("2017-09-30"),])[,-1],
+             use = "pairwise.complete.obs"), method="ellipse"
+         ,type = "lower"
+         ,order = "hclust"
+         ,addCoef.col = "black"
+         ,number.cex = 1 #size for coeeficient
+         ,tl.cex = 1 #the size of text label (variable names).
+         ,tl.srt = 45 #Text label color and rotation
+         ,cl.cex = 1 # size for legend
+         #,diag = FALSE
+         )
 dev.off()
 
 # Plot the correlation of two currencies over time
