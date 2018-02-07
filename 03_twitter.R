@@ -18,6 +18,7 @@ library(wordcloud)
 library(topicmodels)
 library(data.table) # month(), asIDate()
 library(sentiment)
+library(stringr)
 
 ## ----term weighting, eval=F, tidy=F--------------------------------------
 # library(magrittr)
@@ -54,17 +55,16 @@ library(sentiment)
 ## ----load-tweets, echo=F-------------------------------------------------
 library(twitteR)
 ## load tweets into R
-library(twitteR)
 
 #authenticate using your login token
-consumerKey <- "x"
-consumerSecret <- "x"
-accessToken <- "x"
-accessTokenSecret <- "x"
+consumerKey <- "NTMoENQJ4RQ4rSMTvGX0k0IuU"
+consumerSecret <- "7yoIpBCuM9RfxmUt2I3wgyPh5ESl307GI6V2lLbXAe39jxUeSj"
+accessToken <- "735776315702288384-QaY452YBvZiZjBAqkjvzEXieVoAPTpp"
+accessTokenSecret <- "zUgHvnvJul6bqvLsESPkWFhdv2Ha4joLksj0j2yugGPM1"
 setup_twitter_oauth(consumerKey, consumerSecret, accessToken, accessTokenSecret)
 
 ##Retrieve tweets from Twitter
-searchstring <- hashtags <- c("#ICX",'#cryptocurrency') #
+searchstring <- hashtags <- c("#cryptocurrency",'#news') #
 searchstring <- paste(hashtags, collapse = " AND ")
 tweets <- searchTwitter(searchstring, n = 3200) #since="2017-03-01", until="2017-04-07" , resultType = "popular"
 rm(hashtags,searchstring)
@@ -91,7 +91,8 @@ removeNumPunct <- function(x) gsub("[^[:alpha:][:space:]]*", "", x)
 # customize stop words
 #myStopwords <- c(setdiff(stopwords('english'), c("r", "big")),
 #                 "use", "see", "used", "via", "amp")
-myStopwords <- c(stopwords('english'),"rt",'crypto','cryptocurrency','cryptocurrencurrency')
+myStopwords <- c(stopwords('english'),"rt",'crypto','cryptocurrency','cryptocurrencurrency','ico',
+                 'amp','gt')
 
 ## ----prepare-text, tidy=F------------------------------------------------
 library(tm)
@@ -125,9 +126,14 @@ stemCompletion2 <- function(x, dictionary) {
   stripWhitespace(x)
 }
 
+library (snowfall)
+# initialize cluster
+sfInit (parallel=TRUE , cpus=8)
+#parallel computing
 corpus.completed <- corpus.stemmed %>% 
   lapply(stemCompletion2, dictionary=corpus.cleaned) %>% 
   VectorSource() %>% Corpus()
+sfStop ()
 
 ## ----before/after text cleaning, tidy=F----------------------------------
 # original text
@@ -172,9 +178,9 @@ tdm <- corpus.completed %>%
 
 ## ----frequent-terms, out.truncate=70-------------------------------------
 # inspect frequent words
-freq.terms <- tdm %>% findFreqTerms(lowfreq=20) %>% print
+freq.terms <- tdm %>% findFreqTerms(lowfreq=30) %>% print
 term.freq <- tdm %>% as.matrix() %>% rowSums()
-term.freq <- term.freq %>% subset(term.freq>=20)
+term.freq <- term.freq %>% subset(term.freq>=30)
 df <- data.frame(term=names(term.freq), freq=term.freq)
 
 ## ----plot-frequent-terms, tidy=F, fig.align="center", fig.width=4, fig.height=3, out.height=".8\\textheight"----
@@ -198,42 +204,30 @@ pal <- brewer.pal(9, "BuGn")[-(1:4)]
 ## wordcloud(words=names(word.freq), freq=word.freq, min.freq=3, random.order=F, colors=pal)
 
 ## ----wordcloud2, fig.width=8, out.width="0.9\\textwidth", crop=T, echo=F----
-wordcloud(words=names(word.freq), freq=word.freq, min.freq=3, random.order=F, colors=pal)
+#wordcloud(words=names(word.freq), freq=word.freq, min.freq=3, random.order=F, colors=pal)
 
 ## ----association---------------------------------------------------------
 # which words are associated with "r"?
-tdm %>% findAssocs('icx', 0.15)
+#tdm %>% findAssocs('icx', 0.15)
 # which words are associated with "data"?
-tdm %>% findAssocs('data', 0.2)
+#tdm %>% findAssocs('data', 0.2)
 
 ## ----network, fig.width=12, out.width="1.05\\textwidth", out.height="0.6\\textwidth", crop=T----
 library(graph)
 library(Rgraphviz)
-plot(tdm, term = freq.terms, corThreshold = 0.13, weighting = T,
-     attrs=list(node=list(label="foo", 
-                          fillcolor="lightgreen",
-                          fontsize=100,
-                          height=1.8,
-                          width=1.8),
-                edge=list(color="pink",width="0.4")))
-
 #Export image to disk
-png(filename="./plot/icx_assoc.png",
-    height=1080, 
-    width=1920,
-    units="px"
-)
+#png(filename="./plot/words_assoc.png",height=1080, width=1920,units="px")
 plot(tdm, term = freq.terms, corThreshold = 0.15, weighting = T,
      attrs=list(node=list(label="foo", 
                           fillcolor="lightgreen",
-                          fontsize=50,
+                          fontsize=150,
                           height=1.8,
                           width=1.8),
                 edge=list(color="pink",width="0.4")))
-dev.off()
+#dev.off()
 ## ----clustering----------------------------------------------------------
 # remove sparse terms
-m2 <- tdm %>% removeSparseTerms(sparse=0.95) %>% as.matrix()
+m2 <- tdm %>% removeSparseTerms(sparse=0.985) %>% as.matrix()
 
 # calculate distance matrix
 dist.matrix <- m2 %>% scale() %>% dist()
@@ -247,14 +241,16 @@ term.doc.matrix <- m2
 term.doc.matrix %>% save(file="./export/termDocMatrix.rdata")
 
 ## ----plot-cluster, fig.width=8, fig.height=6, out.height='.9\\textwidth'----
+#png(filename="./plot/hclusters_topics.png",height=720, width=1080,units="px")
 plot(fit)
-fit %>% rect.hclust(k=9) # cut tree into 6 clusters
-groups <- fit %>% cutree(k=9)
+fit %>% rect.hclust(k=15) # cut tree into 6 clusters
+groups <- fit %>% cutree(k=15)
+#dev.off()
 
 ## ----kmeans--------------------------------------------------------------
 m3 <- m2 %>% t() # transpose the matrix to cluster documents (tweets)
 set.seed(122) # set a fixed random seed to make the result reproducible
-k <- 10 # number of clusters
+k <- 15 # number of clusters
 kmeansResult <- kmeans(m3, k)
 round(kmeansResult$centers, digits=3) # cluster centers
 
@@ -289,25 +285,26 @@ removeRows <- function(rowNum, data) {
 tweets.df_no_na <- removeRows(empty_rows, tweets.df)
 
 library(topicmodels)
-lda <- LDA(dtm.new, k=8) # find 8 topics
+lda <- LDA(dtm.new, k=15) # find 8 topics
 term <- terms(lda, 10) # first 7 terms of every topic
 term <- apply(term, MARGIN=2, paste, collapse=", ") %>% print
 
 ## ----density-plot, tidy=F, fig.width=10, out.width="\\textwidth", out.height="0.5\\textwidth", fig.align='center', crop=T----
 rdm.topics <- topics(lda) # 1st topic identified for every document (tweet)
-rdm.topics <- data.frame(date=as.IDate(tweets.df_no_na$created), 
+#rdm.topics <- data.frame(date=as.IDate(tweets.df_no_na$created), 
+#                         topic=rdm.topics)
+rdm.topics <- data.frame(date=tweets.df_no_na$created, 
                          topic=rdm.topics)
-ggplot(rdm.topics, aes(date, fill = term[topic])) +
-  geom_density(position = "stack")
 
-png(filename="./plot/time_topics.png",
-    height=720, 
-    width=1080,
-    units="px"
-)
+
+#png(filename="./plot/time_topics.png",
+#    height=720, 
+#    width=1080,
+#    units="px"
+#)
 ggplot(rdm.topics, aes(date, fill = term[topic])) +
   geom_density(position = "stack")
-dev.off()
+#dev.off()
 
 ## ----eval=F--------------------------------------------------------------
 ## # install package sentiment140

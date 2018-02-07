@@ -32,14 +32,12 @@ egam <- (log(E(g)$weight)+.4) / max(log(E(g)$weight)+.4)
 E(g)$color <- rgb(.5, .5, 0, egam)
 E(g)$width <- egam
 
+#Export image to disk
+#png(filename="./plot/icx_networks.png",
+#    height=1080, 
+#    width=1080,
+#    units="px"
+#)
 # plot the graph in layout1
 plot(g, layout=layout1)
-
-#Export image to disk
-png(filename="./plot/icx_networks.png",
-    height=1080, 
-    width=1080,
-    units="px"
-)
-plot(g, layout=layout1)
-dev.off()
+#dev.off()
