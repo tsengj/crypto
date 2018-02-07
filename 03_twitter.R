@@ -57,10 +57,10 @@ library(twitteR)
 ## load tweets into R
 
 #authenticate using your login token
-consumerKey <- "NTMoENQJ4RQ4rSMTvGX0k0IuU"
-consumerSecret <- "7yoIpBCuM9RfxmUt2I3wgyPh5ESl307GI6V2lLbXAe39jxUeSj"
-accessToken <- "735776315702288384-QaY452YBvZiZjBAqkjvzEXieVoAPTpp"
-accessTokenSecret <- "zUgHvnvJul6bqvLsESPkWFhdv2Ha4joLksj0j2yugGPM1"
+consumerKey <- "X"
+consumerSecret <- "X"
+accessToken <- "X"
+accessTokenSecret <- "X"
 setup_twitter_oauth(consumerKey, consumerSecret, accessToken, accessTokenSecret)
 
 ##Retrieve tweets from Twitter
